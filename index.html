@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini AI Chat</title>
+    <!-- 구글 공식 Gemini API 실행용 스크립트 로드 -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/genai": "https://esm.run/@google/genai"
+        }
+      }
+    </script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Malgun Gothic', sans-serif; }
+        body { background-color: #1a1a1a; color: #ffffff; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        
+        /* 앱 컨테이너 */
+        .chat-container { width: 100%; max-width: 450px; height: 100vh; background-color: #262626; display: flex; flex-direction: column; position: relative; }
+        @media (min-width: 450px) { .chat-container { height: 85vh; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; } }
+
+        /* 상단 바 */
+        .chat-header { background-color: #1e1e1e; padding: 20px; text-align: center; border-bottom: 1px solid #333; font-weight: bold; font-size: 1.1rem; color: #0084ff; letter-spacing: 1px; }
+
+        /* 채팅창 영역 */
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        
+        /* 말풍선 공통 */
+        .message { max-width: 75%; padding: 12px 16px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-break: break-word; white-space: pre-wrap; }
+        
+        /* 내 말풍선 */
+        .user-message { background-color: #0084ff; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        
+        /* Gemini 말풍선 */
+        .ai-message { background-color: #3a3a3c; color: #ffffff; align-self: flex-start; border-bottom-left-radius: 4px; }
+
+        /* 로딩 애니메이션 */
+        .loading { color: #8e8e93; font-size: 0.85rem; align-self: flex-start; padding-left: 5px; font-style: italic; }
+
+        /* 하단 입력창 */
+        .chat-input-area { padding: 15px; background-color: #1e1e1e; display: flex; gap: 10px; border-top: 1px solid #333; }
+        .chat-input { flex: 1; background-color: #2f2f30; border: none; padding: 12px 18px; border-radius: 25px; color: white; font-size: 0.95rem; outline: none; }
+        .chat-input::placeholder { color: #777; }
+        .send-btn { background-color: #0084ff; border: none; color: white; padding: 0 20px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .send-btn:hover { background-color: #0066cc; }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">✨ GEMINI AI CHAT</div>
+        
+        <!-- 메시지가 쌓이는 곳 -->
+        <div class="chat-messages" id="chatBox">
+            <div class="message ai-message">안녕하세요! 하나의 파일로 합쳐진 AI 챗봇입니다. 키를 입력한 뒤 무엇이든 물어보세요!</div>
+        </div>
+
+        <!-- 입력창 -->
+        <div class="chat-input-area">
+            <input type="text" id="userInput" class="chat-input" placeholder="메시지를 입력하세요..." onkeypress="if(event.keyCode==13) sendMessage()">
+            <button class="send-btn" id="sendBtn">전송</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenAI } from "@google/genai";
+
+        // ⭐여기에 구글 AI 스튜디오에서 발급받은 실제 API 키를 입력하세요!
+        const API_KEY = "여기에_진짜_구글_API_키를_넣으세요"; 
+
+        // 버튼 클릭 이벤트 연결
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+
+        async function sendMessage() {
+            const inputField = document.getElementById('userInput');
+            const messageText = inputField.value.trim();
+            if (!messageText) return;
+
+            const chatBox = document.getElementById('chatBox');
+
+            // 1. 내가 보낸 메시지 화면에 추가
+            const userDiv = document.createElement('div');
+            userDiv.className = 'message user-message';
+            userDiv.innerText = messageText;
+            chatBox.appendChild(userDiv);
+            
+            // 입력창 비우고 스크롤 하단으로
+            inputField.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 2. '생각 중...' 로딩 표시 추가
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.id = 'loadingStatus';
+            loadingDiv.innerText = 'Gemini가 답변을 생각하는 중...';
+            chatBox.appendChild(loadingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                if (API_KEY === "여기에_진짜_구글_API_키를_넣으세요" || !API_KEY) {
+                    throw new Error("코드 상단의 API_KEY 변수에 실제 구글 API 키를 입력해 주세요!");
+                }
+
+                // 공식 구글 웹 SDK로 브라우저에서 직접 안전하게 통신
+                const ai = new GoogleGenAI({ apiKey: API_KEY });
+                const response = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash',
+                    contents: messageText,
+                });
+                
+                // 로딩 메시지 삭제
+                const currentLoading = document.getElementById('loadingStatus');
+                if(currentLoading) currentLoading.remove();
+
+                // 3. AI 답변 말풍선 추가
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'message ai-message';
+                if (response.text) {
+                    aiDiv.innerText = response.text;
+                } else {
+                    aiDiv.innerText = "❌ 답변을 가져오지 못했습니다.";
+                }
+                chatBox.appendChild(aiDiv);
+
+            } catch (err) {
+                const currentLoading = document.getElementById('loadingStatus');
+                if(currentLoading) currentLoading.remove();
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message ai-message';
+                errorDiv.innerText = "🚨 에러 발생: " + err.message;
+                chatBox.appendChild(errorDiv);
+            }
+
+            // 최종 스크롤 하단 이동
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
