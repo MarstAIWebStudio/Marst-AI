@@ -49,11 +49,11 @@
 <body>
 
     <div class="chat-container">
-        <div class="chat-header">✨ GEMINI AI CHAT</div>
+        <div class="chat-header">✨ Marst AI Chat</div>
         
         <!-- 메시지가 쌓이는 곳 -->
         <div class="chat-messages" id="chatBox">
-            <div class="message ai-message">안녕하세요! 하나의 파일로 합쳐진 AI 챗봇입니다. 키를 입력한 뒤 무엇이든 물어보세요!</div>
+            <div class="message ai-message">Marst AI Chat로 새 Marst AI를 만나보세요!</div>
         </div>
 
         <!-- 입력창 -->
@@ -67,7 +67,7 @@
         import { GoogleGenAI } from "@google/genai";
 
         // ⭐여기에 구글 AI 스튜디오에서 발급받은 실제 API 키를 입력하세요!
-        const API_KEY = "여기에_진짜_구글_API_키를_넣으세요"; 
+        const API_KEY = "AIzaSyC4cMp3CwUUYqfTsgDHSie-E6oSqVdPh08"; 
 
         // 버튼 클릭 이벤트 연결
         document.getElementById('sendBtn').addEventListener('click', sendMessage);
@@ -98,7 +98,7 @@
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                if (API_KEY === "여기에_진짜_구글_API_키를_넣으세요" || !API_KEY) {
+                if (API_KEY === "AIzaSyC4cMp3CwUUYqfTsgDHSie-E6oSqVdPh08" || !API_KEY) {
                     throw new Error("코드 상단의 API_KEY 변수에 실제 구글 API 키를 입력해 주세요!");
                 }
 
